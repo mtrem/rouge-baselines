@@ -23,6 +23,40 @@ baseline_registry = {}
 register = register_to_registry(baseline_registry)
 
 # baseline methods
+
+@register
+def first_sentence_no_tag(article):
+    article = article.strip()
+    try:
+        if article[-1] != '.':
+            article += ' .'
+    except:
+        article += ' .'
+    good_sents = list(re.findall(r'.+?\.', article))
+    return good_sents[:1]
+
+@register
+def first_two_sentences_no_tag(article):
+    article = article.strip()
+    try:
+        if article[-1] != '.':
+            article += ' .'
+    except:
+        article += ' .'
+    good_sents = list(re.findall(r'.+?\.', article))
+    return good_sents[:2]
+
+@register
+def first_three_sentences_no_tag(article):
+    article = article.strip()
+    try:
+        if article[-1] != '.':
+            article += ' .'
+    except:
+        article += ' .'
+    good_sents = list(re.findall(r'.+?\.', article))
+    return good_sents[:3]
+
 @register
 def first_sentence(article, sentence_start_tag='<t>', sentence_end_tag='</t>'):
     ''' use sentence tags to output the first sentence of an article as its summary. '''
@@ -145,6 +179,7 @@ if __name__ == '__main__':
         for i, article in enumerate(f):
             summary = process(article)
             summaries.append(summary)
+            #print('source', len(summary), summary[0])
             n_source += 1
 
     # Read and preprocess a single candidate reference summary for each example
@@ -157,9 +192,10 @@ if __name__ == '__main__':
                 else:
                     candidate = split_sentences(article)
                 references.append([candidate])
+                #print('target', len(candidate), candidate[0])
                 n_target += 1
 
-        assert n_source == n_target, 'Source and target must have the same number of samples.'
+        assert n_source == n_target, 'Source and target must have the same number of samples: {}!={}'.format(n_source, n_target)
 
     # Run official ROUGE evaluation
     if args.run_rouge:
@@ -237,3 +273,21 @@ if __name__ == '__main__':
         print()
 
         print('* evaluated {} samples, took {:.3f}s, averaging {:.3f}s/sample'.format(n_source, dt, dt / n_source))
+        
+    if True:
+        source_avg_sent = sum(map(len, summaries))/len(summaries)
+        source_avg_word = sum(map(lambda summary: sum(map(lambda sent: len(sent.split()), summary)), summaries))/len(summaries)
+        
+        print('Source:')
+        print('Average number of sentences:', round(source_avg_sent, 2))
+        print('Average number of words:    ', round(source_avg_word, 2))
+        
+        #for i in range(20):
+        #    print('ref', references[i])
+        target_avg_sent = sum(map(lambda reference: len(reference[0]), references))/len(references)
+        target_avg_word = sum(map(lambda reference: sum(map(lambda sent: len(sent.split()), reference[0])), references))/len(references)
+        
+        print('Target:')
+        print('Average number of sentences:', round(target_avg_sent, 2))
+        print('Average number of words:    ', round(target_avg_word, 2))
+        
